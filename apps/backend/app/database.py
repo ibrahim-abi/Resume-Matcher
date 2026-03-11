@@ -66,6 +66,7 @@ class Database:
         cover_letter: str | None = None,
         outreach_message: str | None = None,
         title: str | None = None,
+        engine_ats_score: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Create a new resume entry.
 
@@ -86,6 +87,7 @@ class Database:
             "cover_letter": cover_letter,
             "outreach_message": outreach_message,
             "title": title,
+            "engine_ats_score": engine_ats_score,
             "created_at": now,
             "updated_at": now,
         }
@@ -101,6 +103,7 @@ class Database:
         processing_status: str = "pending",
         cover_letter: str | None = None,
         outreach_message: str | None = None,
+        engine_ats_score: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Create a new resume with atomic master assignment.
 
@@ -131,6 +134,7 @@ class Database:
                 processing_status=processing_status,
                 cover_letter=cover_letter,
                 outreach_message=outreach_message,
+                engine_ats_score=engine_ats_score,
             )
 
     def get_resume(self, resume_id: str) -> dict[str, Any] | None:

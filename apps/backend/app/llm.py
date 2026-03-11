@@ -23,9 +23,9 @@ def _configure_litellm_logging() -> None:
 _configure_litellm_logging()
 
 # LLM timeout configuration (seconds) - base values
-LLM_TIMEOUT_HEALTH_CHECK = 30
-LLM_TIMEOUT_COMPLETION = 120
-LLM_TIMEOUT_JSON = 180  # JSON completions may take longer
+LLM_TIMEOUT_HEALTH_CHECK = 120
+LLM_TIMEOUT_COMPLETION = 600
+LLM_TIMEOUT_JSON = 600  # JSON completions may take longer
 
 # LLM-004: OpenRouter JSON-capable models (explicit allowlist)
 OPENROUTER_JSON_CAPABLE_MODELS = {
@@ -268,6 +268,7 @@ def get_model_name(config: LLMConfig) -> str:
         "gemini": "gemini/",
         "deepseek": "deepseek/",
         "ollama": "ollama/",
+        "groq": "groq/",
     }
 
     prefix = provider_prefixes.get(config.provider, "")
@@ -280,7 +281,7 @@ def get_model_name(config: LLMConfig) -> str:
         return f"openrouter/{config.model}"
 
     # For other providers, don't add prefix if model already has a known prefix
-    known_prefixes = ["openrouter/", "anthropic/", "gemini/", "deepseek/", "ollama/"]
+    known_prefixes = ["openrouter/", "anthropic/", "gemini/", "deepseek/", "ollama/", "groq/"]
     if any(config.model.startswith(p) for p in known_prefixes):
         return config.model
 
@@ -348,6 +349,8 @@ async def check_llm_health(
             "api_base": _normalize_api_base(config.provider, config.api_base),
             "timeout": LLM_TIMEOUT_HEALTH_CHECK,
         }
+        if config.api_base and "tail" in config.api_base:
+            kwargs["extra_headers"] = {"Host": "localhost:11434"}
         reasoning_effort = _get_reasoning_effort(config.provider, model_name)
         if reasoning_effort:
             kwargs["reasoning_effort"] = reasoning_effort
@@ -440,11 +443,22 @@ async def complete(
             "api_base": _normalize_api_base(config.provider, config.api_base),
             "timeout": LLM_TIMEOUT_COMPLETION,
         }
+        if config.api_base and "tail" in config.api_base:
+            kwargs["extra_headers"] = {"Host": "localhost:11434"}
         if _supports_temperature(config.provider, model_name):
             kwargs["temperature"] = temperature
         reasoning_effort = _get_reasoning_effort(config.provider, model_name)
         if reasoning_effort:
             kwargs["reasoning_effort"] = reasoning_effort
+
+        if config.provider == "ollama":
+            kwargs["extra_body"] = kwargs.get("extra_body", {})
+            kwargs["extra_body"].update({
+                "keep_alive": "30m"
+            })
+            # num_predict is the absolute hard limit for ollama output tokens
+            kwargs["extra_body"]["options"] = kwargs["extra_body"].get("options", {})
+            kwargs["extra_body"]["options"]["num_predict"] = max_tokens
 
         response = await litellm.acompletion(**kwargs)
 
@@ -463,7 +477,7 @@ async def complete(
 def _supports_json_mode(provider: str, model: str) -> bool:
     """Check if the model supports JSON mode."""
     # Models that support response_format={"type": "json_object"}
-    json_mode_providers = ["openai", "anthropic", "gemini", "deepseek"]
+    json_mode_providers = ["openai", "anthropic", "gemini", "deepseek", "groq"]
     if provider in json_mode_providers:
         return True
     # LLM-004: OpenRouter models - use explicit allowlist instead of substring matching
@@ -491,15 +505,9 @@ def _appears_truncated(data: dict) -> bool:
             )
             return True
 
-    # Check for missing critical sections
-    required_top_level = ["personalInfo"]
-    for key in required_top_level:
-        if key not in data:
-            logging.warning(
-                "Possible truncation detected: missing required section '%s'",
-                key,
-            )
-            return True
+    # LLM-001/ENGINE-FIX: Remove hardcoded 'personalInfo' requirement.
+    # The Engine flow uses optimized schemas that don't include personalInfo.
+    return False
 
     return False
 
@@ -663,12 +671,22 @@ async def complete_json(
                 "api_base": _normalize_api_base(config.provider, config.api_base),
                 "timeout": _calculate_timeout("json", max_tokens, config.provider),
             }
+            if config.api_base and "tail" in config.api_base:
+                kwargs["extra_headers"] = {"Host": "localhost:11434"}
             if _supports_temperature(config.provider, model_name):
                 # LLM-002: Increase temperature on retry for variation
                 kwargs["temperature"] = _get_retry_temperature(attempt)
             reasoning_effort = _get_reasoning_effort(config.provider, model_name)
             if reasoning_effort:
                 kwargs["reasoning_effort"] = reasoning_effort
+
+            if config.provider == "ollama":
+                kwargs["extra_body"] = kwargs.get("extra_body", {})
+                kwargs["extra_body"].update({
+                    "keep_alive": "30m"
+                })
+                kwargs["extra_body"]["options"] = kwargs["extra_body"].get("options", {})
+                kwargs["extra_body"]["options"]["num_predict"] = max_tokens
 
             # Add JSON mode if supported
             if use_json_mode:

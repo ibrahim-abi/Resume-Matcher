@@ -46,7 +46,8 @@ instance/
 
 # Config file with API keys - NEVER COMMIT
 **/config.json
-apps/backend/data/config.json
+apps/backend/data/*.json
+!apps/backend/data/.gitkeep
 
 # cursor related files
 .cursor/

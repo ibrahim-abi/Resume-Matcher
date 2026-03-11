@@ -1,0 +1,231 @@
+%-------------------------
+% Resume in Latex
+% Author
+% License : MIT
+%------------------------
+
+%---- Required Packages and Functions ----
+
+\documentclass[a4paper,11pt]{article}
+\usepackage{latexsym}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{ragged2e}
+\usepackage[empty]{fullpage}
+\usepackage{wrapfig}
+\usepackage{lipsum}
+\usepackage{tabularx}
+\usepackage{titlesec}
+\usepackage{geometry}
+\usepackage{marvosym}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{cfr-lm}
+\usepackage[T1]{fontenc}
+\setlength{\multicolsep}{0pt} 
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\geometry{left=1.4cm, top=0.8cm, right=1.2cm, bottom=1cm}
+% Adjust margins
+%\addtolength{\oddsidemargin}{-0.5in}
+%\addtolength{\evensidemargin}{-0.5in}
+%\addtolength{\textwidth}{1in}
+\usepackage[most]{tcolorbox}
+\tcbset{
+	frame code={}
+	center title,
+	left=0pt,
+	right=0pt,
+	top=0pt,
+	bottom=0pt,
+	colback=gray!20,
+	colframe=white,
+	width=\dimexpr\textwidth\relax,
+	enlarge left by=-2mm,
+	boxsep=4pt,
+	arc=0pt,outer arc=0pt,
+}
+
+\urlstyle{same}
+
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-7pt}]
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[2]{
+  \item{
+    \textbf{#1}{\hspace{0.5mm}#2 \vspace{-0.5mm}}
+  }
+}
+
+\newcommand{\resumePOR}[3]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1}\hspace{0.3mm}#2 & \textit{\small{#3}} 
+    \end{tabular*}
+    \vspace{-2mm}
+}
+
+\newcommand{\resumeSubheading}[4]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & \textit{\footnotesize{#4}} \\
+        \textit{\footnotesize{#3}} &  \footnotesize{#2}\\
+    \end{tabular*}
+    \vspace{-2.4mm}
+}
+
+\newcommand{\resumeProject}[4]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & \textit{\footnotesize{#3}} \\
+        \footnotesize{\textit{#2}} & \footnotesize{#4}
+    \end{tabular*}
+    \vspace{-2.4mm}
+}
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
+% \renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemi}{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*,labelsep=0mm]}
+\newcommand{\resumeHeadingSkillStart}{\begin{itemize}[leftmargin=*,itemsep=1.7mm, rightmargin=2ex]}
+\newcommand{\resumeItemListStart}{\begin{justify}\begin{itemize}[leftmargin=3ex, rightmargin=2ex, noitemsep,labelsep=1.2mm,itemsep=0mm]\small}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{2mm}}
+\newcommand{\resumeHeadingSkillEnd}{\end{itemize}\vspace{-2mm}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\vspace{-2mm}}
+\newcommand{\cvsection}[1]{%
+\vspace{2mm}
+\begin{tcolorbox}
+    \textbf{\large #1}
+\end{tcolorbox}
+    \vspace{-4mm}
+}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}%
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+\newcolumntype{C}{>{\centering\arraybackslash}X}%
+%---- End of Packages and Functions ------
+
+%-------------------------------------------
+%  CV STARTS HERE  %%%%%%%%%%%
+
+\begin{document}
+\fontfamily{cmr}\selectfont
+%----------HEADING-----------------
+
+{
+\begin{tabularx}{\linewidth}{L r} \\
+  \textbf{\Large \VAR{ personal_info.name }} & \BLOCK{ if personal_info.phone }{\raisebox{0.0\height}{\footnotesize \faPhone}\ \VAR{ personal_info.phone }}\BLOCK{ endif }\\
+  \BLOCK{ if personal_info.location }\VAR{ personal_info.location }\BLOCK{ endif } & \BLOCK{ if personal_info.email }\href{mailto:\VAR{ personal_info.email }}{\raisebox{0.0\height}{\footnotesize \faEnvelope}\ {\VAR{ personal_info.email }}}\BLOCK{ endif } \\
+  \BLOCK{ if personal_info.title }\VAR{ personal_info.title | escape_latex }\BLOCK{ endif } & \BLOCK{ if personal_info.github }\href{\VAR{ personal_info.github }}{\raisebox{0.0\height}{\footnotesize \faGithub}\ {\VAR{ personal_info.github | strip_url }}}\BLOCK{ endif } \\  
+   & \BLOCK{ if personal_info.linkedin }\href{\VAR{ personal_info.linkedin }}{\raisebox{0.0\height}{\footnotesize \faLinkedin}\ {\VAR{ personal_info.linkedin | strip_url }}}\BLOCK{ endif }
+\end{tabularx}
+}
+
+%-----------EDUCATION-----------
+\BLOCK{ if education }
+\section{\textbf{Education}}
+  \resumeSubHeadingListStart
+  \BLOCK{ for edu in education }
+    \resumeSubheading
+      {\VAR{ edu.degree | escape_latex }}{\BLOCK{ if edu.location }\VAR{ edu.location | escape_latex }\BLOCK{ endif }}
+      {\VAR{ edu.institution | escape_latex }}{\BLOCK{ if edu.start_date }\VAR{ edu.start_date | escape_latex } -- \BLOCK{ endif }\VAR{ edu.end_date }}
+  \BLOCK{ endfor }
+  \resumeSubHeadingListEnd
+\vspace{-5.5mm}
+\BLOCK{ endif }
+
+%-----------CAREER SUMMARY-----------
+\BLOCK{ if personal_info.summary }
+\section{\textbf{Career Summary}}
+\VAR{ personal_info.summary | escape_latex_safe }
+\BLOCK{ endif }
+
+%-----------EXPERIENCE-----------
+\BLOCK{ if experience }
+\section{\textbf{Experience}}
+  \resumeSubHeadingListStart
+  \BLOCK{ for exp in experience }
+    \resumeSubheading
+      {\VAR{ exp.company | escape_latex }}{\BLOCK{ if exp.location }\VAR{ exp.location | escape_latex }\BLOCK{ endif }}
+      {\VAR{ exp.title | escape_latex }}{\BLOCK{ if exp.start_date }\VAR{ exp.start_date | escape_latex } -- \BLOCK{ endif }\VAR{ exp.end_date }}
+      \resumeItemListStart
+      \BLOCK{ for bullet in exp.bullets }
+        \item {\VAR{ bullet | escape_latex_safe }}
+      \BLOCK{ endfor }
+      \resumeItemListEnd
+  \BLOCK{ endfor }
+  \resumeSubHeadingListEnd
+\vspace{-5.5mm}
+\BLOCK{ endif }
+
+%-----------PROJECTS-----------------
+\BLOCK{ if projects }
+\section{\textbf{Personal Projects}}
+\resumeSubHeadingListStart
+\BLOCK{ for proj in projects }
+    \resumeProject
+      {\VAR{ proj.name | escape_latex }}
+      {\BLOCK{ if proj.description }\VAR{ proj.description | escape_latex }\BLOCK{ endif }}
+      {}
+      {\BLOCK{ if proj.link }\href{\VAR{ proj.link | escape_latex }}{Link}\BLOCK{ endif }}
+      \BLOCK{ if proj.bullets }
+      \resumeItemListStart
+      \BLOCK{ for bullet in proj.bullets }
+        \item {\VAR{ bullet | escape_latex_safe }}
+      \BLOCK{ endfor }
+      \resumeItemListEnd
+      \BLOCK{ endif }
+    \vspace{-2mm}
+\BLOCK{ endfor }
+\resumeSubHeadingListEnd
+\vspace{-8.5mm}
+\BLOCK{ endif }
+
+%-----------Technical skills-----------------
+\BLOCK{ if skills }
+\section{\textbf{Technical Skills and Interests}}
+ \begin{itemize}[leftmargin=0.05in, label={}]
+    \small{\item{
+    \BLOCK{ for skill_group in skills }
+     \textbf{\VAR{ skill_group.category | escape_latex }:} \BLOCK{ for skill in skill_group.skills }\VAR{ skill | escape_latex }\BLOCK{ if not loop.last }, \BLOCK{ endif }\BLOCK{ endfor } \BLOCK{ if not loop.last }\\ \BLOCK{ endif }
+    \BLOCK{ endfor }
+    }}
+ \end{itemize}
+ \vspace{-16pt}
+\BLOCK{ endif }
+
+%-----------Positions of Responsibility-----------------
+\BLOCK{ if responsibilities }
+\section{\textbf{Positions of Responsibility}}
+\vspace{-0.4mm}
+\resumeSubHeadingListStart
+\BLOCK{ for res in responsibilities }
+\resumePOR{\VAR{ res.title | escape_latex }}{\VAR{ res.organization | escape_latex }}{\VAR{ res.date_range }}
+    \BLOCK{ if res.bullets }
+    \resumeItemListStart
+    \BLOCK{ for bullet in res.bullets }
+    \item {\VAR{ bullet }}
+    \BLOCK{ endfor }
+    \resumeItemListEnd
+    \BLOCK{ endif }
+\BLOCK{ endfor }
+\resumeSubHeadingListEnd
+\vspace{-5mm}
+\BLOCK{ endif }
+
+%-------------------------------------------
+\end{document}

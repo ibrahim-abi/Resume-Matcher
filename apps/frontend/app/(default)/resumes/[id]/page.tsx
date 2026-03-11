@@ -13,6 +13,7 @@ import {
   retryProcessing,
   renameResume,
 } from '@/lib/api/resume';
+import { exportLatexPdf } from '@/lib/api/engine';
 import { useStatusCache } from '@/lib/context/status-cache';
 import { ArrowLeft, Edit, Download, Loader2, AlertCircle, Sparkles, Pencil } from 'lucide-react';
 import { EnrichmentModal } from '@/components/enrichment/enrichment-modal';
@@ -20,6 +21,7 @@ import { useTranslations } from '@/lib/i18n';
 import { withLocalizedDefaultSections } from '@/lib/utils/section-helpers';
 import { useLanguage } from '@/lib/context/language-context';
 import { downloadBlobAsFile, openUrlInNewTab, sanitizeFilename } from '@/lib/utils/download';
+import { AtsScorePanel } from '@/components/engine/ats-score-panel';
 
 type ProcessingStatus = 'pending' | 'processing' | 'ready' | 'failed';
 
@@ -43,6 +45,9 @@ export default function ResumeViewerPage() {
   const [resumeTitle, setResumeTitle] = useState<string | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editingTitleValue, setEditingTitleValue] = useState('');
+  const [initialEngineScore, setInitialEngineScore] = useState<Record<string, unknown> | null>(
+    null
+  );
 
   const resumeId = params?.id as string;
 
@@ -66,6 +71,11 @@ export default function ResumeViewerPage() {
 
         // Capture title for editable display (always set to clear stale state)
         setResumeTitle(data.title ?? null);
+
+        // Pre-calculated Engine Flow score
+        if (data.engine_ats_score) {
+          setInitialEngineScore(data.engine_ats_score);
+        }
 
         // Prioritize processed_resume if available (structured JSON)
         if (data.processed_resume) {
@@ -178,6 +188,26 @@ export default function ResumeViewerPage() {
         }
         return;
       }
+    }
+  };
+
+  const handleLatexDownload = async () => {
+    if (!resumeData) return;
+
+    try {
+      // Show loading equivalent by changing cursor or toast (simple log for now)
+      setProcessingStatus('processing');
+
+      const blob = await exportLatexPdf(resumeData);
+      const filename = sanitizeFilename(resumeTitle, resumeId, 'resume');
+      downloadBlobAsFile(blob, `${filename}.pdf`);
+      setShowDownloadSuccessDialog(true);
+
+      setProcessingStatus('ready');
+    } catch (err) {
+      console.error('Failed to download LaTeX resume:', err);
+      setError(t('resumeViewer.errors.processingFailed'));
+      setProcessingStatus('failed');
     }
   };
 
@@ -299,10 +329,26 @@ export default function ResumeViewerPage() {
               <Edit className="w-4 h-4" />
               {t('dashboard.editResume')}
             </Button>
-            <Button variant="success" onClick={handleDownload}>
-              <Download className="w-4 h-4" />
-              {t('resumeViewer.downloadResume')}
-            </Button>
+            <div className="flex rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border border-black bg-white overflow-hidden ml-2 h-10">
+              <Button
+                variant="ghost"
+                className="rounded-none border-0 h-full text-green-700 hover:bg-green-50 px-3 border-r border-black font-mono uppercase tracking-wider text-xs font-bold"
+                onClick={handleDownload}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Chromium PDF
+              </Button>
+              {!isMasterResume && (
+                <Button
+                  variant="ghost"
+                  className="rounded-none border-0 h-full text-blue-700 hover:bg-blue-50 px-3 font-mono uppercase tracking-wider text-xs font-bold"
+                  onClick={handleLatexDownload}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  LaTeX PDF
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -342,30 +388,43 @@ export default function ResumeViewerPage() {
           </div>
         )}
 
-        {/* Resume Viewer */}
-        <div className="flex justify-center pb-4">
-          <div className="resume-print w-full max-w-[250mm] shadow-[8px_8px_0px_0px_#000000] border-2 border-black bg-white">
-            <Resume
-              resumeData={localizedResumeData || resumeData}
-              additionalSectionLabels={{
-                technicalSkills: t('resume.additionalLabels.technicalSkills'),
-                languages: t('resume.additionalLabels.languages'),
-                certifications: t('resume.additionalLabels.certifications'),
-                awards: t('resume.additionalLabels.awards'),
-              }}
-              sectionHeadings={{
-                summary: t('resume.sections.summary'),
-                experience: t('resume.sections.experience'),
-                education: t('resume.sections.education'),
-                projects: t('resume.sections.projects'),
-                certifications: t('resume.sections.certifications'),
-                skills: t('resume.sections.skillsOnly'),
-                languages: t('resume.sections.languages'),
-                awards: t('resume.sections.awards'),
-                links: t('resume.sections.links'),
-              }}
-              fallbackLabels={{ name: t('resume.defaults.name') }}
-            />
+        {/* Main Content Area */}
+        <div className="flex flex-col lg:flex-row gap-8 pb-4">
+          {/* Left Column: Editor / Panel */}
+          {!isMasterResume && (
+            <div className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6">
+              <AtsScorePanel
+                resumeId={resumeId}
+                initialScoreData={initialEngineScore || undefined}
+              />
+            </div>
+          )}
+
+          {/* Right Column: Resume Preview */}
+          <div className="flex-1 flex justify-center lg:justify-start overflow-x-auto pb-8">
+            <div className="resume-print w-full max-w-[210mm] shadow-[8px_8px_0px_0px_#000000] border-2 border-black bg-white shrink-0">
+              <Resume
+                resumeData={localizedResumeData || resumeData}
+                additionalSectionLabels={{
+                  technicalSkills: t('resume.additionalLabels.technicalSkills'),
+                  languages: t('resume.additionalLabels.languages'),
+                  certifications: t('resume.additionalLabels.certifications'),
+                  awards: t('resume.additionalLabels.awards'),
+                }}
+                sectionHeadings={{
+                  summary: t('resume.sections.summary'),
+                  experience: t('resume.sections.experience'),
+                  education: t('resume.sections.education'),
+                  projects: t('resume.sections.projects'),
+                  certifications: t('resume.sections.certifications'),
+                  skills: t('resume.sections.skillsOnly'),
+                  languages: t('resume.sections.languages'),
+                  awards: t('resume.sections.awards'),
+                  links: t('resume.sections.links'),
+                }}
+                fallbackLabels={{ name: t('resume.defaults.name') }}
+              />
+            </div>
           </div>
         </div>
 

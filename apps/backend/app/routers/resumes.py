@@ -425,6 +425,7 @@ async def get_resume(resume_id: str = Query(...)) -> ResumeFetchResponse:
             outreach_message=resume.get("outreach_message"),
             parent_id=resume.get("parent_id"),
             title=resume.get("title"),
+            engine_ats_score=resume.get("engine_ats_score"),
         ),
     )
 

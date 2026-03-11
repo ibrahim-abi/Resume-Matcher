@@ -390,6 +390,7 @@ class ResumeFetchData(BaseModel):
     outreach_message: str | None = None
     parent_id: str | None = None  # For determining if resume is tailored
     title: str | None = None
+    engine_ats_score: dict[str, Any] | None = None
 
 
 class ResumeFetchResponse(BaseModel):

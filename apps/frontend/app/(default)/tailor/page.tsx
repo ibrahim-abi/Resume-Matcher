@@ -13,6 +13,7 @@ import {
   previewImproveResume,
   confirmImproveResume,
 } from '@/lib/api/resume';
+import { generateEngineResume } from '@/lib/api/engine';
 import { fetchPromptConfig, type PromptOption } from '@/lib/api/config';
 import { Dropdown } from '@/components/ui/dropdown';
 import { useStatusCache } from '@/lib/context/status-cache';
@@ -32,6 +33,8 @@ export default function TailorPage() {
   const [promptLoading, setPromptLoading] = useState(false);
   const hasUserSelectedPrompt = useRef(false);
   const missingDiffConfirmInFlight = useRef(false);
+
+  const [tailorEngine, setTailorEngine] = useState<'standard' | 'engine'>('standard');
 
   // Diff preview modal state
   const [showDiffModal, setShowDiffModal] = useState(false);
@@ -206,7 +209,16 @@ export default function TailorPage() {
     setIsLoading(true);
     setError(null);
     try {
-      await runGenerate(resumeId, trimmedDescription);
+      if (tailorEngine === 'engine') {
+        const result = await generateEngineResume(resumeId, trimmedDescription);
+        incrementResumes();
+        router.push(`/resumes/${result.resume_id}`);
+      } else {
+        await runGenerate(resumeId, trimmedDescription);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Generation failed.');
     } finally {
       setIsLoading(false);
     }
@@ -348,41 +360,66 @@ export default function TailorPage() {
         )}
 
         <div className="space-y-6">
-          <Dropdown
-            options={
-              promptOptions.length > 0
-                ? promptOptions.map((opt) => ({
-                    id: opt.id,
-                    label: t(`tailor.promptOptions.${opt.id}.label`),
-                    description: t(`tailor.promptOptions.${opt.id}.description`),
-                  }))
-                : [
-                    {
-                      id: 'nudge',
-                      label: t('tailor.promptOptions.nudge.label'),
-                      description: t('tailor.promptOptions.nudge.description'),
-                    },
-                    {
-                      id: 'keywords',
-                      label: t('tailor.promptOptions.keywords.label'),
-                      description: t('tailor.promptOptions.keywords.description'),
-                    },
-                    {
-                      id: 'full',
-                      label: t('tailor.promptOptions.full.label'),
-                      description: t('tailor.promptOptions.full.description'),
-                    },
-                  ]
-            }
-            value={selectedPromptId}
-            onChange={(value) => {
-              hasUserSelectedPrompt.current = true;
-              setSelectedPromptId(value);
-            }}
-            label={t('tailor.promptLabel')}
-            description={t('tailor.promptDescription')}
-            disabled={isLoading || promptLoading}
-          />
+          <div className="w-full grid grid-cols-2 gap-4">
+            <Button
+              variant={tailorEngine === 'standard' ? 'default' : 'outline'}
+              className={`h-16 rounded-none ${tailorEngine === 'standard' ? 'border-2 border-black bg-blue-700 text-white' : 'border-2 border-gray-300'}`}
+              onClick={() => setTailorEngine('standard')}
+            >
+              <div className="flex flex-col items-center">
+                <span className="font-bold uppercase font-mono tracking-wider">Standard Flow</span>
+                <span className="text-xs font-normal opacity-80">Line-by-line diff review</span>
+              </div>
+            </Button>
+            <Button
+              variant={tailorEngine === 'engine' ? 'default' : 'outline'}
+              className={`h-16 rounded-none ${tailorEngine === 'engine' ? 'border-2 border-black bg-blue-700 text-white' : 'border-2 border-gray-300'}`}
+              onClick={() => setTailorEngine('engine')}
+            >
+              <div className="flex flex-col items-center">
+                <span className="font-bold uppercase font-mono tracking-wider">Engine Flow</span>
+                <span className="text-xs font-normal opacity-80">Instant PDF + ATS Score</span>
+              </div>
+            </Button>
+          </div>
+
+          {tailorEngine === 'standard' && (
+            <Dropdown
+              options={
+                promptOptions.length > 0
+                  ? promptOptions.map((opt) => ({
+                      id: opt.id,
+                      label: t(`tailor.promptOptions.${opt.id}.label`),
+                      description: t(`tailor.promptOptions.${opt.id}.description`),
+                    }))
+                  : [
+                      {
+                        id: 'nudge',
+                        label: t('tailor.promptOptions.nudge.label'),
+                        description: t('tailor.promptOptions.nudge.description'),
+                      },
+                      {
+                        id: 'keywords',
+                        label: t('tailor.promptOptions.keywords.label'),
+                        description: t('tailor.promptOptions.keywords.description'),
+                      },
+                      {
+                        id: 'full',
+                        label: t('tailor.promptOptions.full.label'),
+                        description: t('tailor.promptOptions.full.description'),
+                      },
+                    ]
+              }
+              value={selectedPromptId}
+              onChange={(value) => {
+                hasUserSelectedPrompt.current = true;
+                setSelectedPromptId(value);
+              }}
+              label={t('tailor.promptLabel')}
+              description={t('tailor.promptDescription')}
+              disabled={isLoading || promptLoading}
+            />
+          )}
 
           <div className="relative">
             <Textarea

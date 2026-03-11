@@ -73,6 +73,7 @@ COPY --from=frontend-builder /usr/local/bin/node /usr/local/bin/node
 # ============================================
 COPY apps/backend/pyproject.toml /app/backend/
 COPY apps/backend/app /app/backend/app
+COPY apps/backend/templates /app/backend/templates
 
 WORKDIR /app/backend
 
@@ -110,7 +111,7 @@ USER appuser
 # Install Playwright Chromium as appuser (so browsers are in correct location)
 RUN python -m playwright install chromium
 
-# Expose the public port (backend remains internal on 8000)
+# Expose only the frontend port (backend remains internal)
 EXPOSE 3000
 
 # Volume for persistent data
